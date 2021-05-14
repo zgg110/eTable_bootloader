@@ -1010,10 +1010,6 @@
             <name>$PROJ_DIR$\..\Core\Src\internalflash.c</name>
             <outputs>
                 <tool>
-                    <name>ICCARM</name>
-                    <file> 178</file>
-                </tool>
-                <tool>
                     <name>BICOMP</name>
                     <file> 179</file>
                 </tool>
@@ -1025,7 +1021,7 @@
                 </tool>
                 <tool>
                     <name>BICOMP</name>
-                    <file> 145 63 49 33 124 119 122 127 125 147 59 174 57 151 104 150 60 92 40 144 87 107 105 149 159 102 126 117 139 128 65 34 175 177 42 37 54 38 67 68 121 101 140 118</file>
+                    <file> 63 49 33 107 124 119 122 87 125 147 59 174 105 151 104 150 60 92 40 144 145 127 57 149 159 102 126 117 139 128 65 34 175 177 42 37 54 38 67 68 121 101 140 118</file>
                 </tool>
             </inputs>
         </file>

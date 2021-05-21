@@ -1,19 +1,20 @@
 #include "internalflash.h"
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 
+/*主程序写入地址用于更改主程序指定位置，不能轻易变动*/
+#define APPSTATADD         0x00000000       
 
-int internal_flash_write(uint32_t addr, uint8_t *data, uint64_t length){
-  HAL_FLASH_Unlock();
-  for(int i = 0; i < length; i++){
-    HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, addr + i, data[i]);
-  }
-  HAL_FLASH_Lock();
-  return 0;
-}
+/*单页已用字节个数*/
+static uint16_t onepageval = 0;
 
+/*当前写入地址*/
+static uint32_t presentadd = APPSTATADD;
 
+/*写入数据到FLASH需要以4k为动态缓冲，当最后数据接收结束并未达到4K时进行FF填充*/
+/*需要进行uint8_t 到 uint64_t 指针指向转换*/
 
 /**
 * 说明 : 往ST的FLASH写入指定长度的数据（由于是单页写入，写入的字节不能超过4K字节）
@@ -87,7 +88,56 @@ void Read_ST_Flash(uint32_t addr, uint32_t* ptr, uint16_t nword)
 }
 
 
-
+/****
+ *进行字节转换与缓存写入FLASH中
+ *saddr ： 第几包的数据位置
+ *ndword ：当次写入单字节个数
+ *ackn ： 是否已经写完 0为未写完  1为已经写完
+*****/ 
+void Buffer_Flash(uint8_t* ptr, uint16_t ndword, uint8_t ackn, uint8_t* pageptr)
+{
+//  uint16_t ackval;
+//  
+//  /*赋值此次进入的单字节长度*/
+//  ackval = ndword;
+//  char *Ptr = NULL;
+//  Ptr = (char *)malloc(4096 * sizeof(char));
+  if(ackn == 0)
+  {
+    /*输入字节小于叠加余数*/
+    if((ndword <= (4096-onepageval)) && (4096-onepageval > 0))
+    {
+      /*将对应字节放入申请的4k堆栈中*/
+      onepageval += ndword;
+      /*将对应字符串放入缓冲队列*/
+      memcpy(&pageptr[onepageval],ptr,ndword);
+    }
+    else
+    {
+      /*将前半部分写入堆栈中，后半部分等待写完flash之后再写入堆栈中*/
+      memcpy(&pageptr[onepageval],ptr,4096-onepageval);
+      /*之后再整体写道FLASH中*/
+      Write_ST_Flash(presentadd, (uint64_t*) pageptr, 4096);
+      /*更改当前写入地址*/  
+      presentadd += APPSTATADD;
+      /*标记之后占用的下一次写入的字节数*/
+      onepageval = ndword - (4096-onepageval);
+    }
+  }
+  else
+  {
+    /*将剩余字节填充FF进行flash写入*/
+    /*判断flash字节剩余个数加入循环填充*/
+    for(int i=4096-onepageval;i<=4096;i++)
+    {
+      pageptr[i] = 0xFF;
+    }
+    Write_ST_Flash(presentadd, (uint64_t*) pageptr, 4096);
+  }
+  
+//  /*释放申请堆栈*/
+//  free(Ptr);
+}
 
 
 

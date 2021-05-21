@@ -23,9 +23,9 @@
 
 if ($debugfile -eq "")
 {
-& "D:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "G:\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.general.xcl" --backend -f "G:\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.driver.xcl" 
+& "D:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "E:\Estone_liuying\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.general.xcl" --backend -f "E:\Estone_liuying\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.driver.xcl" 
 }
 else
 {
-& "D:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "G:\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.general.xcl" --debug_file=$debugfile --backend -f "G:\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.driver.xcl" 
+& "D:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "E:\Estone_liuying\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.general.xcl" --debug_file=$debugfile --backend -f "E:\Estone_liuying\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.driver.xcl" 
 }

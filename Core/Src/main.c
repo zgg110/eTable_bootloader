@@ -40,6 +40,14 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+uint8_t uart1Revflag = 0;
+uint8_t uart1Data[1074];
+uint16_t uart1len = 0;
+
+/* 单包数据需要接收的长度 */
+uint16_t uart1packlen = 0;
+
+funtioncode_f Funtioncode;
 
 /* USER CODE END PM */
 
@@ -57,6 +65,37 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* 获取UART1串口数据函数 */
+void Rev_Uart1_Data(void)
+{
+
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  uint8_t RX_buf;
+  /* 主串口回调函数 */
+  if(huart->Instance == USART1)
+  {
+    HAL_UART_Receive_IT(&huart1,&RX_buf, 1);
+    uart1Data[uart1len++] = RX_buf;
+    if((uart1Revflag == 0) && (uart1len >= 3))
+    {
+      /* 表示正在接收一包数据 */
+      uart1Revflag = 1;
+      /* 获取接下来的数据长度 */
+      uart1packlen = (uart1Data[2]<<8) || uart1Data[3];
+    }
+    if(uart1Revflag == 1)
+    {
+      if(uart1packlen == uart1len)
+      {
+        /* 表述数据接收完毕 */
+        uart1Revflag = 6;
+      }
+    }
+  }
+}
 
 /* USER CODE END 0 */
 
@@ -100,6 +139,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    /* 等待获取数据使设备进入相关模式 */
+    switch(Funtioncode)
+    {
+    case UART1DOWN:
+      
+      break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

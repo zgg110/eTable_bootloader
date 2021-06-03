@@ -37,7 +37,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-/* 配置相关功能码定义 */
+/* 配置相关功能码定�? */
   typedef enum {
     UART1DOWN = 0x01,
   }funtioncode_f; 

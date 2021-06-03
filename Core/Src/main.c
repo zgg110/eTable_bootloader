@@ -43,8 +43,9 @@
 uint8_t uart1Revflag = 0;
 uint8_t uart1Data[1074];
 uint16_t uart1len = 0;
+uint8_t uart1RxDatatmp;
 
-/* 单包数据需要接收的长度 */
+/* 单包数据�?要接收的长度 */
 uint16_t uart1packlen = 0;
 
 funtioncode_f Funtioncode;
@@ -73,18 +74,17 @@ void Rev_Uart1_Data(void)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  uint8_t RX_buf;
   /* 主串口回调函数 */
   if(huart->Instance == USART1)
   {
-    HAL_UART_Receive_IT(&huart1,&RX_buf, 1);
-    uart1Data[uart1len++] = RX_buf;
-    if((uart1Revflag == 0) && (uart1len >= 3))
+
+    uart1Data[uart1len++] = uart1RxDatatmp;
+    if((uart1Revflag == 0) && (uart1len > 3))
     {
-      /* 表示正在接收一包数据 */
+      /* 表示正在接收单包数据 */
       uart1Revflag = 1;
       /* 获取接下来的数据长度 */
-      uart1packlen = (uart1Data[2]<<8) || uart1Data[3];
+      uart1packlen = (uint16_t)(uart1Data[2]<<8) | uart1Data[3];
     }
     if(uart1Revflag == 1)
     {
@@ -92,8 +92,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
       {
         /* 表述数据接收完毕 */
         uart1Revflag = 6;
+        /* 可以关闭中断 */
+        
       }
     }
+    HAL_UART_Receive_IT(&huart1,&uart1RxDatatmp, 1);    
   }
 }
 
@@ -106,7 +109,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -115,14 +118,14 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -132,7 +135,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_UART_Receive_IT(&huart1, &uart1RxDatatmp, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -142,9 +145,12 @@ int main(void)
     /* 等待获取数据使设备进入相关模式 */
     switch(Funtioncode)
     {
-    case UART1DOWN:
-      
-      break;
+      /* 主串口下载程序到flash */  
+      case UART1DOWN:
+        
+        break;
+      default:
+        break;
     }
     /* USER CODE END WHILE */
 

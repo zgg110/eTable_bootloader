@@ -17,22 +17,18 @@ static uint32_t presentadd = APPSTATADD;
 /*需要进行uint8_t 到 uint64_t 指针指向转换*/
 
 /**
-* 说明 : 往ST的FLASH写入指定长度的数据（由于是单页写入，写入的字节不能超过4K字节）
-* 参数 : addr, 写入的起始地址（保证双字对齐）
-*        ptr, 数据存放地址（注意是uint64_t类型，即一次写入8字节）
-*        ndword, 写入的Dword数（注意双字数）
-* 返回 : 成功返回0，失败返回1
-*/ 
-uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
+*说明 : 擦除4k字节长度的FLASH，用于擦除一页数据
+*参数 : addr 指定擦除位置
+*       npage 指定擦除页数
+*返回 : 成功返回0，失败返回1
+*
+*/
+uint8_t Erase_ST_Flash(uint32_t addr, uint16_t npage)
 {
   uint8_t page;
-  uint32_t PAGEError=0;
+  uint32_t PAGEError=0;  
   FLASH_EraseInitTypeDef EraseInitStruct;
-  /**不能超4K */
-  if(ndword > 512)
-  {
-    return 1;
-  }
+
   /** 解锁FLASH寄存器 */
   HAL_FLASH_Unlock();
   /** 清除所有错误标志（如果不清除会导致写失败） */
@@ -46,13 +42,62 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
   EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES; /* 擦除方式：页擦除 */
   EraseInitStruct.Banks       = FLASH_BANK_1;          /* 擦除页所在的区域：BANK1 */
   EraseInitStruct.Page        = page;                  /* 擦除页的编号 */
-  EraseInitStruct.NbPages     = 1;                     /* 擦除页的数量：1 */
+  EraseInitStruct.NbPages     = npage;                     /* 擦除页的数量：1 */
   
   if (HAL_FLASHEx_Erase(&EraseInitStruct, &PAGEError) != HAL_OK)
   {
     /* error */
+      return 1;
+  }
+  return 0;
+}
+
+
+
+/**
+* 说明 : 往ST的FLASH写入指定长度的数据（由于是单页写入，写入的字节不能超过4K字节）
+* 参数 : addr, 写入的起始地址（保证双字对齐）
+*        ptr, 数据存放地址（注意是uint64_t类型，即一次写入8字节）
+*        ndword, 写入的Dword数（注意双字数）
+* 返回 : 成功返回0，失败返回1
+*/ 
+uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
+{
+//  uint8_t page;
+//  uint32_t PAGEError=0;
+//  FLASH_EraseInitTypeDef EraseInitStruct;
+  /** 记录是否存在不够4字节 */
+  uint8_t modword = 0;
+  
+  /**不能超4K */
+  if(ndword > 512)
+  {
     return 1;
   }
+
+  /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
+  
+  
+  /** 解锁FLASH寄存器 */
+  HAL_FLASH_Unlock();
+  /** 清除所有错误标志（如果不清除会导致写失败） */
+  __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS); 
+//  /** 计算用户编程地址在FLASH中哪个页(每页4K字节) */
+//  /** 如果地址在Bank1则用下面这个公式计算页 */
+//  page = (addr - FLASH_BASE) / FLASH_PAGE_SIZE;
+//  /** 如果地址在Bank2则用下面这个公式计算页 */
+//  //  page = (addr - (FLASH_BASE + FLASH_BANK_SIZE)) / FLASH_PAGE_SIZE; 
+//  
+//  EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES; /* 擦除方式：页擦除 */
+//  EraseInitStruct.Banks       = FLASH_BANK_1;          /* 擦除页所在的区域：BANK1 */
+//  EraseInitStruct.Page        = page;                  /* 擦除页的编号 */
+//  EraseInitStruct.NbPages     = 1;                     /* 擦除页的数量：1 */
+//  
+//  if (HAL_FLASHEx_Erase(&EraseInitStruct, &PAGEError) != HAL_OK)
+//  {
+//    /* error */
+//    return 1;
+//  }
   for(uint16_t i=0; i<ndword; i++)
   {
     if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, addr, ptr[i]) == HAL_OK)
@@ -65,6 +110,9 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
       return 1;      
     }
   }
+  /** 判断是否在之后添加0xFF */
+  
+  
   HAL_FLASH_Lock();
   return 0;
 }

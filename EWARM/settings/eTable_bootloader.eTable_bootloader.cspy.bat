@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"D:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "E:\MYGITHUB\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.general.xcl" --backend -f "E:\MYGITHUB\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.driver.xcl" 
+"D:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "G:\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.general.xcl" --backend -f "G:\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"D:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "E:\MYGITHUB\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.general.xcl" "--debug_file=%~1" --backend -f "E:\MYGITHUB\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.driver.xcl" 
+"D:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "G:\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.general.xcl" "--debug_file=%~1" --backend -f "G:\mygithub\eTable_bootloader\EWARM\settings\eTable_bootloader.eTable_bootloader.driver.xcl" 
 
 @echo off 
 :end

@@ -145,12 +145,12 @@ int main(void)
     /* 等待获取数据使设备进入相关模式 */
     switch(Funtioncode)
     {
-    /* 主串口下载程序到flash */  
-    case UART1DOWN:
-      
-      break;
-    default:
-      break;
+      /* 主串口下载程序到flash */  
+      case UART1DOWN:
+        
+        break;
+      default:
+        break;
     }
     /* USER CODE END WHILE */
 

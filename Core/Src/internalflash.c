@@ -75,8 +75,6 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
     return 1;
   }
 
-  /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
-  
   
   /** 解锁FLASH寄存器 */
   HAL_FLASH_Unlock();
@@ -98,7 +96,7 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
 //    /* error */
 //    return 1;
 //  }
-  for(uint16_t i=0; i<ndword; i++)
+  for(uint16_t i=0; i<(ndword+modword); i++)
   {
     if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, addr, ptr[i]) == HAL_OK)
     {
@@ -110,11 +108,27 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
       return 1;      
     }
   }
-  /** 判断是否在之后添加0xFF */
+
   
   
   HAL_FLASH_Lock();
   return 0;
+}
+
+
+/**
+*说明：将4字节写入FLASH 转换成单字节写入FLASH
+*
+*
+*
+***/
+uint8_t Write_Data_Flash(uint32_t addrd, uint64_t* ptrd, uint16_t ndchar)
+{
+    /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
+  
+  
+   /** 判断是否在之后添加0xFF */ 
+
 }
 
 

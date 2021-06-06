@@ -989,7 +989,7 @@
             <IarPane-34109>
                 <expressions>
                     <item>uart1Data</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>

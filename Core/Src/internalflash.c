@@ -66,8 +66,8 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
 //  uint8_t page;
 //  uint32_t PAGEError=0;
 //  FLASH_EraseInitTypeDef EraseInitStruct;
-  /** 记录是否存在不够4字节 */
-  uint8_t modword = 0;
+//  /** 记录是否存在不够4字节 */
+//  uint8_t modword = 0;
   
   /**不能超4K */
   if(ndword > 512)
@@ -75,7 +75,6 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
     return 1;
   }
 
-  
   /** 解锁FLASH寄存器 */
   HAL_FLASH_Unlock();
   /** 清除所有错误标志（如果不清除会导致写失败） */
@@ -96,7 +95,7 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
 //    /* error */
 //    return 1;
 //  }
-  for(uint16_t i=0; i<(ndword+modword); i++)
+  for(uint16_t i=0; i<ndword; i++)
   {
     if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, addr, ptr[i]) == HAL_OK)
     {
@@ -118,17 +117,38 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
 
 /**
 *说明：将4字节写入FLASH 转换成单字节写入FLASH
-*
-*
-*
+*参数： addrd表示字节的起始位置
+*       *ptrd写入字符串指针
+*       ndchar写入单字节字符串的字节长度
+*返回： 0表示写入完成  1表示写入错误
 ***/
-uint8_t Write_Data_Flash(uint32_t addrd, uint64_t* ptrd, uint16_t ndchar)
+uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint16_t ndchar)
 {
-    /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
+  uint8_t ret = 0;
+  uint8_t *cptr;
   
+  cptr = malloc(ndchar+8);
+  /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
+  if((ndchar%4) != 0)
+  {
+    /** 将字节数转换为uint64_t */
+    ndchar = (ndchar/8) + 1;
+  }
+  else
+  {
+    /** 获得uint64_t的字节长度 */
+    ndchar = ndchar/8;  
+  }
+  /** 将申请的空间填充为0xff */
+  memset(cptr,0xff,ndchar+8);
+  /** 判断是否在之后添加0xFF */
+  memcpy(cptr,ptrd,ndchar);
+  /* 将处理完成的数据写入flash */
+  ret = Write_ST_Flash(addrd, (uint64_t *)cptr, ndchar);
   
-   /** 判断是否在之后添加0xFF */ 
-
+  free(cptr); 
+  
+  return ret;
 }
 
 

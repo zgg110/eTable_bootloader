@@ -26,7 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "internalflash.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,6 +100,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   }
 }
 
+/* 进行数据解析判断接收到的一帧数据属于的类型指令 */
+uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
+{
+  
+  
+  return 0;
+}
+
+
 /* USER CODE END 0 */
 
 /**
@@ -142,6 +151,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    /* 获得接收串口标志，判断是否已经接收完成一帧数据 */
+    if(uart1Revflag == 6)
+    {
+      /* 获得接收数据完成后进入相关数据解析 */ 
+      uart1Revflag = 0;
+      /* 解析主串口接收数据 */
+//      Data_Analy(uint8_t *dat, uint16_t dlen);
+    }
+    
     /* 等待获取数据使设备进入相关模式 */
     switch(Funtioncode)
     {

@@ -131,13 +131,13 @@ uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint16_t ndchar)
   /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
   if((ndchar%4) != 0)
   {
-    /** 将字节数转换为uint64_t */
-    ndchar = (ndchar/8) + 1;
+    /** 将字节数转换为uint64_t 单字节求整为0 需要多加1*/
+    ndchar = (ndchar/8) + 2;
   }
   else
   {
     /** 获得uint64_t的字节长度 */
-    ndchar = ndchar/8;  
+    ndchar = (ndchar/8) + 1;  
   }
   /** 将申请的空间填充为0xff */
   memset(cptr,0xff,ndchar+8);

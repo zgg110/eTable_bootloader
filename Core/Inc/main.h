@@ -41,6 +41,10 @@ extern "C" {
   typedef enum {
     /*主串口写FLASH指令*/
     UART1DOWN = 0x01,
+    /*擦除指定flash*/
+    ERASFLASH = 0X0A,
+    /*复位重启*/
+    RESETDEV = 0X0B,    
   }funtioncode_f; 
   
 /* USER CODE END ET */

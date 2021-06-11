@@ -26,6 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "string.h"
 #include "internalflash.h"
 /* USER CODE END Includes */
 
@@ -88,7 +89,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
     if(uart1Revflag == 1)
     {
-      if(uart1packlen == uart1len)
+      if(uart1packlen == uart1len-4)
       {
         /* 表述数据接收完毕 */
         uart1Revflag = 6;
@@ -103,7 +104,48 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 /* 进行数据解析判断接收到的一帧数据属于的类型指令 */
 uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 {
+//  uint8_t temp[10] = {0xFF,0x01,0x00,0x05,0x01,0x02,0x03,0x04,0x05,0x06};
+  uint8_t ttem[40];
+  uint16_t inputaddr = 0;
+  uint16_t inputdatalen = 0;
+  /*首先校验CRC判断是否数据正确*/
   
+  /*其次判断功能码*/
+  Funtioncode = (funtioncode_f)dat[1];
+  /* 等待获取数据使设备进入相关模式 */
+  switch(Funtioncode)
+  {
+    /* 主串口下载程序到flash */  
+    case UART1DOWN:
+      /*获取实际有效字节长度*/
+      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
+      if((inputdatalen-4)%8 != 0) return 1;
+      /*获取地址*/
+      inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
+      if(inputaddr%8 != 0) return 1;
+      /*擦除对应flash*/
+      Erase_ST_Flash(inputaddr,1);
+      /*判断正确可以进行flash写入*/
+      Write_Data_Flash(inputaddr, &dat[6], inputdatalen-4);
+      
+//      Read_Data_Flash(0, ttem, 40);
+      break;
+  case ERASFLASH:
+      /*获取实际有效字节长度*/
+      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
+      if((inputdatalen-4)%8 != 0) return 1;
+      /*获取地址*/
+      inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
+      if(inputaddr%8 != 0) return 1;    
+      /*擦除对应位置上的额数据*/
+      Erase_ST_Flash(inputaddr,inputdatalen);
+      break;
+  case RESETDEV:
+    
+      break;
+    default:
+      break;
+  }
   
   return 0;
 }
@@ -157,19 +199,13 @@ int main(void)
       /* 获得接收数据完成后进入相关数据解析 */ 
       uart1Revflag = 0;
       /* 解析主串口接收数据 */
-//      Data_Analy(uint8_t *dat, uint16_t dlen);
+      Data_Analy(uart1Data, uart1len);
+      /* 解析完成清空接收 */
+      memset(uart1Data,0,1074);
+      uart1len = 0;
     }
     
-    /* 等待获取数据使设备进入相关模式 */
-    switch(Funtioncode)
-    {
-      /* 主串口下载程序到flash */  
-      case UART1DOWN:
-        
-        break;
-      default:
-        break;
-    }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

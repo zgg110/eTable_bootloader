@@ -5,7 +5,7 @@
 
 
 /*主程序写入地址用于更改主程序指定位置，不能轻易变动*/
-#define APPSTATADD         0x00000000       
+#define APPSTATADD         0x0803F800       
 
 /*单页已用字节个数*/
 static uint16_t onepageval = 0;
@@ -29,6 +29,8 @@ uint8_t Erase_ST_Flash(uint32_t addr, uint16_t npage)
   uint32_t PAGEError=0;  
   FLASH_EraseInitTypeDef EraseInitStruct;
 
+  
+  addr = addr + APPSTATADD;
   /** 解锁FLASH寄存器 */
   HAL_FLASH_Unlock();
   /** 清除所有错误标志（如果不清除会导致写失败） */
@@ -126,25 +128,27 @@ uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint16_t ndchar)
 {
   uint8_t ret = 0;
   uint8_t *cptr;
-  
+  uint16_t ndtchar;
+    
   cptr = malloc(ndchar+8);
   /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
-  if((ndchar%4) != 0)
+  if((ndchar%8) != 0)
   {
-    /** 将字节数转换为uint64_t 单字节求整为0 需要多加1*/
-    ndchar = (ndchar/8) + 2;
+    /*如果8的余数不为0则认为数据错误跳出*/
+    return 1;
   }
   else
   {
     /** 获得uint64_t的字节长度 */
-    ndchar = (ndchar/8) + 1;  
+    ndtchar = (ndchar/8);  
   }
   /** 将申请的空间填充为0xff */
   memset(cptr,0xff,ndchar+8);
   /** 判断是否在之后添加0xFF */
-  memcpy(cptr,ptrd,ndchar);
+  for(int j=0;j<ndchar;j++)
+    cptr[j] = ptrd[j];
   /* 将处理完成的数据写入flash */
-  ret = Write_ST_Flash(addrd, (uint64_t *)cptr, ndchar);
+  ret = Write_ST_Flash(addrd+APPSTATADD, (uint64_t *)cptr, ndtchar);
   
   free(cptr); 
   
@@ -166,6 +170,22 @@ void Read_ST_Flash(uint32_t addr, uint32_t* ptr, uint16_t nword)
   {
     ptr[i] = *(__IO uint32_t *)addr;
     addr = addr + 4;
+  }
+}
+
+/**
+* 说明 : 从ST的flash中连续读取指定长度的数据并储存到指定地址（1字节读取）
+* 参数 : addr, 读取的起始地址
+*        ptr, 存放地址
+*        nword, 读取的word数
+* 返回 : 成功返回0，失败返回1
+*/
+void Read_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint16_t nchar)
+{
+  for(uint16_t i=0; i<nchar; i++)
+  {
+    ptrd[i] = *(__IO uint32_t *)(addrd+APPSTATADD);
+    addrd = addrd + 1;
   }
 }
 

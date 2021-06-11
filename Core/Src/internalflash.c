@@ -5,7 +5,7 @@
 
 
 /*主程序写入地址用于更改主程序指定位置，不能轻易变动*/
-#define APPSTATADD         0x0803F800       
+#define APPSTATADD     FLASH_ADDR_APPLICATION       
 
 /*单页已用字节个数*/
 static uint16_t onepageval = 0;
@@ -239,6 +239,29 @@ void Buffer_Flash(uint8_t* ptr, uint16_t ndword, uint8_t ackn, uint8_t* pageptr)
   
 //  /*释放申请堆栈*/
 //  free(Ptr);
+}
+
+
+/* 跳转主程序函数 */
+void jump_application(void)
+{
+  typedef void (*funcPtr)(void);
+  uint32_t jumpAddr = *(uint32_t*)(FLASH_ADDR_APPLICATION + 0x04); /* reset ptr in vector table */
+  funcPtr usrMain = (funcPtr)jumpAddr;
+  
+  HAL_RCC_DeInit();
+  HAL_DeInit();
+  SysTick->CTRL = 0;
+  SysTick->LOAD = 0;
+  SysTick->VAL  = 0;
+  for (int i = 0; i < 8; i++)
+  {
+    NVIC->ICER[i]=0xFFFFFFFF;
+    NVIC->ICPR[i]=0xFFFFFFFF;
+  }
+  /* Set stack pointer as in application's vector table */
+  __set_MSP(*(uint32_t*)FLASH_ADDR_APPLICATION);
+  usrMain();
 }
 
 

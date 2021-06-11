@@ -26,6 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stdio.h"    
 #include "string.h"
 #include "internalflash.h"
 /* USER CODE END Includes */
@@ -45,6 +46,12 @@ uint8_t uart1Revflag = 0;
 uint8_t uart1Data[1074];
 uint16_t uart1len = 0;
 uint8_t uart1RxDatatmp;
+
+/* 跳转计时定义 */
+uint8_t jumptim = 0;
+
+/* 保持boot状态标志位 */
+uint8_t timflag = 0;
 
 /* 单包数据�?要接收的长度 */
 uint16_t uart1packlen = 0;
@@ -115,8 +122,8 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
   /* 等待获取数据使设备进入相关模式 */
   switch(Funtioncode)
   {
-    /* 主串口下载程序到flash */  
-    case UART1DOWN:
+   /* 主串口下载程序到flash */  
+   case UART1DOWN:
       /*获取实际有效字节长度*/
       inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
       if((inputdatalen-4)%8 != 0) return 1;
@@ -204,11 +211,25 @@ int main(void)
       memset(uart1Data,0,1074);
       uart1len = 0;
     }
-    
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    HAL_Delay(100);
+    /* 计时并判断是否需要跳转 */
+    if(timflag == 0) 
+    {
+      jumptim++;
+      if(jumptim%10 == 0)
+        printf("Time %d\n",jumptim/10);      
+    }
+    if(jumptim > 50)
+    {
+      jumptim = 0;
+      /* 进行跳转 */
+      printf("jump to application...\n");
+      jump_application();
+    }
+    
   }
   /* USER CODE END 3 */
 }

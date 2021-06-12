@@ -109,8 +109,6 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
       return 1;      
     }
   }
-
-  
   
   HAL_FLASH_Lock();
   return 0;

@@ -53,6 +53,9 @@ uint8_t jumptim = 0;
 /* 保持boot状态标志位 */
 uint8_t timflag = 0;
 
+/* 单字节超时计时 */
+uint16_t TimeFlag = 0;
+
 /* 单包数据�?要接收的长度 */
 uint16_t uart1packlen = 0;
 
@@ -74,10 +77,14 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/* 获取UART1串口数据函数 */
-void Rev_Uart1_Data(void)
+/* 单字节接收超时计数 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-
+  /* 单字节超时计时器 */
+  if(htim->Instance == htim6.Instance)  
+  {
+    ++TimeFlag;
+  }
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -85,8 +92,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   /* 主串口回调函数 */
   if(huart->Instance == USART1)
   {
-
     uart1Data[uart1len++] = uart1RxDatatmp;
+    TimeFlag = 0;  
+    if(uart1len < 2)
+      HAL_TIM_Base_Start_IT(&htim6);  
     if((uart1Revflag == 0) && (uart1len > 3))
     {
       /* 表示正在接收单包数据 */
@@ -100,11 +109,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
       {
         /* 表述数据接收完毕 */
         uart1Revflag = 6;
-        /* 可以关闭中断 */
-        
+        /* 可以关闭超时计时中断 */
+        TimeFlag = 0;
+        HAL_TIM_Base_Stop(&htim6);
       }
     }
-    HAL_UART_Receive_IT(&huart1,&uart1RxDatatmp, 1);    
+    HAL_UART_Receive_IT(&huart1,&uart1RxDatatmp, 1); 
   }
 }
 
@@ -112,11 +122,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 {
 //  uint8_t temp[10] = {0xFF,0x01,0x00,0x05,0x01,0x02,0x03,0x04,0x05,0x06};
+  uint8_t ackdata[30];
   uint8_t ttem[40];
   uint16_t inputaddr = 0;
   uint16_t inputdatalen = 0;
   /*首先校验CRC判断是否数据正确*/
-  
+
   /*其次判断功能码*/
   Funtioncode = (funtioncode_f)dat[1];
   /* 等待获取数据使设备进入相关模式 */
@@ -130,11 +141,28 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
       if(inputaddr%8 != 0) return 1;
-      /*擦除对应flash*/
-      Erase_ST_Flash(inputaddr,1);
+//      /*擦除对应flash*/
+//      Erase_ST_Flash(inputaddr,1);
+      ackdata[0] = 0xEE;
+      ackdata[1] = UART1DOWN;
+      ackdata[2] = 0x00;
+      ackdata[3] = 0x05;
+      ackdata[4] = (uint8_t)(inputaddr>>8);
+      ackdata[5] = (uint8_t)inputaddr;
+      ackdata[7] = 0xEE;
+      ackdata[8] = 0xEE;
       /*判断正确可以进行flash写入*/
-      Write_Data_Flash(inputaddr, &dat[6], inputdatalen-4);
-      
+      if(Write_Data_Flash(inputaddr, &dat[6], inputdatalen-4) == 0)
+      {
+        ackdata[6] = 0x00;
+      }  
+      else
+      {
+        ackdata[6] = 0x01;      
+      }
+      /*发送应答数据*/
+      HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
+
 //      Read_Data_Flash(0, ttem, 40);
       break;
   case ERASFLASH:
@@ -144,8 +172,25 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
       if(inputaddr%8 != 0) return 1;    
+      ackdata[0] = 0xEE;
+      ackdata[1] = ERASFLASH;
+      ackdata[2] = 0x00;
+      ackdata[3] = 0x05;
+      ackdata[4] = (uint8_t)(inputaddr>>8);
+      ackdata[5] = (uint8_t)inputaddr;
+      ackdata[7] = 0xEE;
+      ackdata[8] = 0xEE;      
       /*擦除对应位置上的额数据*/
-      Erase_ST_Flash(inputaddr,inputdatalen);
+      if(Erase_ST_Flash(inputaddr,inputdatalen) == 0)
+      {
+        ackdata[6] = 0x00;
+      }  
+      else
+      {
+        ackdata[6] = 0x01;      
+      }   
+      /*发送应答数据*/
+      HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
       break;
   case RESETDEV:
     
@@ -194,6 +239,7 @@ int main(void)
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Receive_IT(&huart1, &uart1RxDatatmp, 1);
+  printf("bootloader start ...\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -201,8 +247,17 @@ int main(void)
   while (1)
   {
     /* 获得接收串口标志，判断是否已经接收完成一帧数据 */
+    if((uart1Revflag == 1) && (TimeFlag > 100))
+    {
+        /* 表述数据接收完毕 */
+        uart1Revflag = 6;        
+        /* 可以关闭超时计时中断 */
+        TimeFlag = 0;
+        HAL_TIM_Base_Stop(&htim6);    
+    }
     if(uart1Revflag == 6)
     {
+      timflag = 1;
       /* 获得接收数据完成后进入相关数据解析 */ 
       uart1Revflag = 0;
       /* 解析主串口接收数据 */

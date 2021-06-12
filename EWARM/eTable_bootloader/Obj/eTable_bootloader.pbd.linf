@@ -4,6 +4,11 @@ G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\internalflash.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\main.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\mbcrc.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\rtc.pbi
+G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_msp.pbi
+G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_it.pbi
+G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\tim.pbi
+G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\usart.pbi
+G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\system_stm32l4xx.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_cortex.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_dma.pbi
@@ -15,7 +20,6 @@ G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_flash_ra
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_gpio.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_i2c.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_i2c_ex.pbi
-G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_msp.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_pwr.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_pwr_ex.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_rcc.pbi
@@ -26,7 +30,3 @@ G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_tim.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_tim_ex.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_uart.pbi
 G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_hal_uart_ex.pbi
-G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\stm32l4xx_it.pbi
-G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\system_stm32l4xx.pbi
-G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\tim.pbi
-G:\mygithub\eTable_bootloader\EWARM\eTable_bootloader\Obj\usart.pbi

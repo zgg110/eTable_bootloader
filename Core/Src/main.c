@@ -29,6 +29,7 @@
 #include "stdio.h"    
 #include "string.h"
 #include "internalflash.h"
+#include "mbcrc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -123,11 +124,12 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 {
 //  uint8_t temp[10] = {0xFF,0x01,0x00,0x05,0x01,0x02,0x03,0x04,0x05,0x06};
   uint8_t ackdata[30];
-  uint8_t ttem[40];
   uint16_t inputaddr = 0;
   uint16_t inputdatalen = 0;
+  uint16_t crcdata = 0;
   /*首先校验CRC判断是否数据正确*/
-
+  crcdata = usMBCRC16( dat, dlen-2 );
+  if(crcdata != ((uint16_t)(dat[dlen-2]<<8)|(dat[dlen-1]))) return 1;
   /*其次判断功能码*/
   Funtioncode = (funtioncode_f)dat[1];
   /* 等待获取数据使设备进入相关模式 */
@@ -149,8 +151,6 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[3] = 0x05;
       ackdata[4] = (uint8_t)(inputaddr>>8);
       ackdata[5] = (uint8_t)inputaddr;
-      ackdata[7] = 0xEE;
-      ackdata[8] = 0xEE;
       /*判断正确可以进行flash写入*/
       if(Write_Data_Flash(inputaddr, &dat[6], inputdatalen-4) == 0)
       {
@@ -160,6 +160,9 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       {
         ackdata[6] = 0x01;      
       }
+      crcdata = usMBCRC16( ackdata, 7 );
+      ackdata[7] = (uint8_t)(crcdata>>8);
+      ackdata[8] = (uint8_t)crcdata;      
       /*发送应答数据*/
       HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
 
@@ -177,9 +180,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[2] = 0x00;
       ackdata[3] = 0x05;
       ackdata[4] = (uint8_t)(inputaddr>>8);
-      ackdata[5] = (uint8_t)inputaddr;
-      ackdata[7] = 0xEE;
-      ackdata[8] = 0xEE;      
+      ackdata[5] = (uint8_t)inputaddr;   
       /*擦除对应位置上的额数据*/
       if(Erase_ST_Flash(inputaddr,inputdatalen) == 0)
       {
@@ -189,6 +190,9 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       {
         ackdata[6] = 0x01;      
       }   
+      crcdata = usMBCRC16( ackdata, 7 );
+      ackdata[7] = (uint8_t)(crcdata>>8);
+      ackdata[8] = (uint8_t)crcdata;        
       /*发送应答数据*/
       HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
       break;

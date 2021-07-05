@@ -44,21 +44,27 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 uint8_t uart1Revflag = 0;
+uint8_t uart2Revflag = 0;
 uint8_t uart1Data[1074];
+uint8_t uart2Data[1074];
 uint16_t uart1len = 0;
+uint16_t uart2len = 0;
 uint8_t uart1RxDatatmp;
+uint8_t uart2RxDatatmp;
 
 /* 跳转计时定义 */
 uint8_t jumptim = 0;
 
-/* 保持boot状态标志位 */
+/* 保持boot状�?�标志位 */
 uint8_t timflag = 0;
 
-/* 单字节超时计时 */
-uint16_t TimeFlag = 0;
+/* 单字节超时计�? */
+uint16_t Time6Flag = 0;
+uint16_t Time7Flag = 0;
 
 /* 单包数据�?要接收的长度 */
 uint16_t uart1packlen = 0;
+uint16_t uart2packlen = 0;
 
 funtioncode_f Funtioncode;
 
@@ -78,23 +84,27 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/* 单字节接收超时计数 */
+/* 单字节接收超时计�? */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* 单字节超时计时器 */
   if(htim->Instance == htim6.Instance)  
   {
-    ++TimeFlag;
+    ++Time6Flag;
+  }
+  else if(htim->Instance == htim7.Instance)  
+  {
+    ++Time7Flag;
   }
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  /* 主串口回调函数 */
+  /* 主串口回调函�? */
   if(huart->Instance == USART1)
   {
     uart1Data[uart1len++] = uart1RxDatatmp;
-    TimeFlag = 0;  
+    Time6Flag = 0;  
     if(uart1len < 2)
       HAL_TIM_Base_Start_IT(&htim6);  
     if((uart1Revflag == 0) && (uart1len > 3))
@@ -111,15 +121,41 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         /* 表述数据接收完毕 */
         uart1Revflag = 6;
         /* 可以关闭超时计时中断 */
-        TimeFlag = 0;
-        HAL_TIM_Base_Stop(&htim6);
+        Time6Flag = 0;
+        HAL_TIM_Base_Stop(&htim7);
       }
     }
     HAL_UART_Receive_IT(&huart1,&uart1RxDatatmp, 1); 
+  }else if(huart->Instance == USART2)
+  {
+    uart2Data[uart2len++] = uart2RxDatatmp;
+    Time7Flag = 0;  
+    if(uart2len < 2)
+      HAL_TIM_Base_Start_IT(&htim6);  
+    if((uart2Revflag == 0) && (uart2len > 3))
+    {
+      /* 表示正在接收单包数据 */
+      uart2Revflag = 1;
+      /* 获取接下来的数据长度 */
+      uart2packlen = (uint16_t)(uart2Data[2]<<8) | uart2Data[3];
+    }
+    if(uart2Revflag == 1)
+    {
+      if(uart2packlen == uart1len-4)
+      {
+        /* 表述数据接收完毕 */
+        uart2Revflag = 6;
+        /* 可以关闭超时计时中断 */
+        Time7Flag = 0;
+        HAL_TIM_Base_Stop(&htim7);
+      }
+    }
+    HAL_UART_Receive_IT(&huart2,&uart2RxDatatmp, 1);   
+  
   }
 }
 
-/* 进行数据解析判断接收到的一帧数据属于的类型指令 */
+/* 进行数据解析判断接收到的�?帧数据属于的类型指令 */
 uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 {
 //  uint8_t temp[10] = {0xFF,0x01,0x00,0x05,0x01,0x02,0x03,0x04,0x05,0x06};
@@ -130,9 +166,9 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
   /*首先校验CRC判断是否数据正确*/
   crcdata = usMBCRC16( dat, dlen-2 );
   if(crcdata != ((uint16_t)(dat[dlen-2]<<8)|(dat[dlen-1]))) return 1;
-  /*其次判断功能码*/
+  /*其次判断功能�?*/
   Funtioncode = (funtioncode_f)dat[1];
-  /* 等待获取数据使设备进入相关模式 */
+  /* 等待获取数据使设备进入相关模�? */
   switch(Funtioncode)
   {
    /* 主串口下载程序到flash */  
@@ -163,11 +199,44 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       crcdata = usMBCRC16( ackdata, 7 );
       ackdata[7] = (uint8_t)(crcdata>>8);
       ackdata[8] = (uint8_t)crcdata;      
-      /*发送应答数据*/
+      /*发�?�应答数�?*/
       HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
 
 //      Read_Data_Flash(0, ttem, 40);
       break;
+   /* 蓝牙串口下载程序到flash */  
+   case UART2DOWN:
+      /*获取实际有效字节长度*/
+      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
+      if((inputdatalen-4)%8 != 0) return 1;
+      /*获取地址*/
+      inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
+      if(inputaddr%8 != 0) return 1;
+//      /*擦除对应flash*/
+//      Erase_ST_Flash(inputaddr,1);
+      ackdata[0] = 0xEE;
+      ackdata[1] = UART2DOWN;
+      ackdata[2] = 0x00;
+      ackdata[3] = 0x05;
+      ackdata[4] = (uint8_t)(inputaddr>>8);
+      ackdata[5] = (uint8_t)inputaddr;
+      /*判断正确可以进行flash写入*/
+      if(Write_Data_Flash(inputaddr, &dat[6], inputdatalen-4) == 0)
+      {
+        ackdata[6] = 0x00;
+      }  
+      else
+      {
+        ackdata[6] = 0x01;      
+      }
+      crcdata = usMBCRC16( ackdata, 7 );
+      ackdata[7] = (uint8_t)(crcdata>>8);
+      ackdata[8] = (uint8_t)crcdata;      
+      /*发�?�应答数�?*/
+      HAL_UART_Transmit(&huart2 , (uint8_t *)ackdata, 9, 0xFFFF); 
+
+//      Read_Data_Flash(0, ttem, 40);
+      break;      
   case ERASFLASH:
       /*获取实际有效字节长度*/
       inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
@@ -181,7 +250,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[3] = 0x05;
       ackdata[4] = (uint8_t)(inputaddr>>8);
       ackdata[5] = (uint8_t)inputaddr;   
-      /*擦除对应位置上的额数据*/
+      /*擦除对应位置上的额数�?*/
       if(Erase_ST_Flash(inputaddr,inputdatalen) == 0)
       {
         ackdata[6] = 0x00;
@@ -193,7 +262,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       crcdata = usMBCRC16( ackdata, 7 );
       ackdata[7] = (uint8_t)(crcdata>>8);
       ackdata[8] = (uint8_t)crcdata;        
-      /*发送应答数据*/
+      /*发�?�应答数�?*/
       HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
       break;
   case RESETDEV:
@@ -241,8 +310,10 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Receive_IT(&huart1, &uart1RxDatatmp, 1);
+  HAL_UART_Receive_IT(&huart2, &uart2RxDatatmp, 1);
   printf("bootloader start ...\n");
   /* USER CODE END 2 */
 
@@ -250,21 +321,30 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* 获得接收串口标志，判断是否已经接收完成一帧数据 */
-    if((uart1Revflag == 1) && (TimeFlag > 100))
+    /* 获得接收串口标志，判断是否已经接收完成一帧数�? */
+    if((uart1Revflag == 1) && (Time6Flag > 100))
     {
         /* 表述数据接收完毕 */
         uart1Revflag = 6;        
         /* 可以关闭超时计时中断 */
-        TimeFlag = 0;
+        Time6Flag = 0;
         HAL_TIM_Base_Stop(&htim6);    
+    }
+    else if((uart2Revflag == 1) && (Time7Flag > 100))
+    {
+        /* 表述数据接收完毕 */
+        uart2Revflag = 6;        
+        /* 可以关闭超时计时中断 */
+        Time7Flag = 0;
+        HAL_TIM_Base_Stop(&htim7);     
+    
     }
     if(uart1Revflag == 6)
     {
       timflag = 1;
-      /* 获得接收数据完成后进入相关数据解析 */ 
+      /* 获得接收数据完成后进入相关数据解�? */ 
       uart1Revflag = 0;
-      /* 解析主串口接收数据 */
+      /* 解析主串口接收数�? */
       Data_Analy(uart1Data, uart1len);
       /* 解析完成清空接收 */
       memset(uart1Data,0,1074);
@@ -274,7 +354,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     HAL_Delay(100);
-    /* 计时并判断是否需要跳转 */
+    /* 计时并判断是否需要跳�? */
     if(timflag == 0) 
     {
       jumptim++;

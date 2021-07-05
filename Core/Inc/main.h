@@ -37,10 +37,12 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-/* 配置相关功能码定义 */
+/* 配置相关功能码定�? */
   typedef enum {
     /*主串口写FLASH指令*/
     UART1DOWN = 0x01,
+    /*蓝牙串口写FLASH指令*/
+    UART2DOWN = 0x02,    
     /*擦除指定flash*/
     ERASFLASH = 0X0A,
     /*复位重启*/

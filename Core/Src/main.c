@@ -177,7 +177,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
       if((inputdatalen-4)%8 != 0) return 1;
       /*获取地址*/
-      inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
+      inputaddr = (uint16_t)((dat[4]<<8)|dat[5])*8; 
       if(inputaddr%8 != 0) return 1;
 //      /*擦除对应flash*/
 //      Erase_ST_Flash(inputaddr,1);
@@ -185,6 +185,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[1] = UART1DOWN;
       ackdata[2] = 0x00;
       ackdata[3] = 0x05;
+      inputaddr = inputaddr/8;
       ackdata[4] = (uint8_t)(inputaddr>>8);
       ackdata[5] = (uint8_t)inputaddr;
       /*判断正确可以进行flash写入*/
@@ -207,7 +208,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
    /* 蓝牙串口下载程序到flash */  
    case UART2DOWN:
       /*获取实际有效字节长度*/
-      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
+      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3])*8;
       if((inputdatalen-4)%8 != 0) return 1;
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
@@ -218,6 +219,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[1] = UART2DOWN;
       ackdata[2] = 0x00;
       ackdata[3] = 0x05;
+      inputaddr = inputaddr/8;      
       ackdata[4] = (uint8_t)(inputaddr>>8);
       ackdata[5] = (uint8_t)inputaddr;
       /*判断正确可以进行flash写入*/

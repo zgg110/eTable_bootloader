@@ -238,12 +238,12 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 //      Read_Data_Flash(0, ttem, 40);
       break;      
   case ERASFLASH:
-      /*获取实际有效字节长度*/
-      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
-      if((inputdatalen-4)%8 != 0) return 1;
+//      if((inputdatalen-4)%8 != 0) return 1;
       /*获取地址*/
-      inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
-      if(inputaddr%8 != 0) return 1;    
+      inputaddr = (uint16_t)((dat[4]<<8)|dat[5]);
+      /*获取擦除数据的页数*/
+      inputdatalen = (uint16_t)dat[6];      
+//      if(inputaddr%8 != 0) return 1;    
       ackdata[0] = 0xEE;
       ackdata[1] = ERASFLASH;
       ackdata[2] = 0x00;

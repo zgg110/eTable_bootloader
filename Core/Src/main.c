@@ -114,6 +114,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
       /* 获取接下来的数据长度 */
       uart1packlen = (uint16_t)(uart1Data[2]<<8) | uart1Data[3];
     }
+    else if(uart1Data[0] != 0xFF)
+    {
+      uart1len = 0;
+    }
     if(uart1Revflag == 1)
     {
       if(uart1packlen == uart1len-4)
@@ -139,9 +143,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
       /* 获取接下来的数据长度 */
       uart2packlen = (uint16_t)(uart2Data[2]<<8) | uart2Data[3];
     }
+    else if(uart2Data[0] != 0xFF)
+    {
+      uart2len = 0;
+    }    
     if(uart2Revflag == 1)
     {
-      if(uart2packlen == uart1len-4)
+      if(uart2packlen == uart2len-4)
       {
         /* 表述数据接收完毕 */
         uart2Revflag = 6;
@@ -352,6 +360,17 @@ int main(void)
       memset(uart1Data,0,1074);
       uart1len = 0;
     }
+    else if(uart2Revflag == 6)
+    {
+      timflag = 1;
+      /* 获得接收数据完成后进入相关数据解枿 */ 
+      uart2Revflag = 0;
+      /* 解析主串口接收数捿 */
+      Data_Analy(uart2Data, uart2len);
+      /* 解析完成清空接收 */
+      memset(uart2Data,0,1074);
+      uart2len = 0;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -367,8 +386,8 @@ int main(void)
     {
       jumptim = 0;
       /* 进行跳转 */
-      printf("jump to application...\n");
-      jump_application();
+//      printf("jump to application...\n");
+//      jump_application();
     }
     
   }

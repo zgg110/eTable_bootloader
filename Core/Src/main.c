@@ -216,7 +216,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
    /* 蓝牙串口下载程序到flash */  
    case UART2DOWN:
       /*获取实际有效字节长度*/
-      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3])*8;
+      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
       if((inputdatalen-4)%8 != 0) return 1;
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 

@@ -273,7 +273,8 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[7] = (uint8_t)(crcdata>>8);
       ackdata[8] = (uint8_t)crcdata;        
       /*å‘é?åº”ç­”æ•°æ?*/
-      HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
+      HAL_UART_Transmit(&huart2 , (uint8_t *)ackdata, 9, 0xFFFF);
+      HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF);       
       break;
   case RESETDEV:
     

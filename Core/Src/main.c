@@ -167,6 +167,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 {
 //  uint8_t temp[10] = {0xFF,0x01,0x00,0x05,0x01,0x02,0x03,0x04,0x05,0x06};
+
   uint8_t ackdata[30];
   uint16_t inputaddr = 0;
   uint16_t inputdatalen = 0;
@@ -183,10 +184,18 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
    case UART1DOWN:
       /*获取实际有效字节长度*/
       inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
-      if((inputdatalen-4)%8 != 0) return 1;
+      if((inputdatalen-4)%8 != 0) 
+      {
+        printf("inputdatalen error \r\n");
+        return 1;
+      }
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5])*8; 
-      if(inputaddr%8 != 0) return 1;
+      if(inputaddr%8 != 0) 
+      {
+        printf("inputaddr error \r\n");
+        return 1;
+      }
 //      /*擦除对应flash*/
 //      Erase_ST_Flash(inputaddr,1);
       ackdata[0] = 0xEE;
@@ -217,10 +226,18 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
    case UART2DOWN:
       /*获取实际有效字节长度*/
       inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
-      if((inputdatalen-4)%8 != 0) return 1;
+      if((inputdatalen-4)%8 != 0) 
+      {
+        printf("inputdatalen error \r\n");
+        return 1;
+      }
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]); 
-      if(inputaddr%8 != 0) return 1;
+      if(inputaddr%8 != 0)
+      {
+        printf("inputaddr error \r\n");
+        return 1;
+      }        
 //      /*擦除对应flash*/
 //      Erase_ST_Flash(inputaddr,1);
       ackdata[0] = 0xEE;
@@ -252,7 +269,11 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]);
       /*获取擦除数据的页数*/
-      inputdatalen = (uint16_t)dat[6];      
+      inputdatalen = (uint16_t)(dat[6]<<16) | (dat[6]<<18) | dat[6];
+      inputdatalen = (inputdatalen/8)/1024;
+      if(inputdatalen >= 128) inputdatalen = 64;
+      /*打印需要擦除的页数*/
+      printf("Erasure FLASH page %d \r\n",inputdatalen);      
 //      if(inputaddr%8 != 0) return 1;    
       ackdata[0] = 0xEE;
       ackdata[1] = ERASFLASH;

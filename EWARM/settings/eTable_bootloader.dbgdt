@@ -1012,7 +1012,7 @@
                     <item>crcdata</item>
                     <item>dat</item>
                     <item>uart2Data</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>

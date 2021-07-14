@@ -53,7 +53,7 @@ uint8_t uart1RxDatatmp;
 uint8_t uart2RxDatatmp;
 
 /* 跳转计时定义 */
-uint8_t jumptim = 0;
+uint16_t jumptim = 0;
 
 /* 保持boot状�?�标志位 */
 uint8_t timflag = 0;
@@ -169,8 +169,8 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 //  uint8_t temp[10] = {0xFF,0x01,0x00,0x05,0x01,0x02,0x03,0x04,0x05,0x06};
 
   uint8_t ackdata[30];
-  uint16_t inputaddr = 0;
-  uint16_t inputdatalen = 0;
+  uint32_t inputaddr = 0;
+  uint32_t inputdatalen = 0;
   uint16_t crcdata = 0;
   /*首先校验CRC判断是否数据正确*/
   crcdata = usMBCRC16( dat, dlen-2 );
@@ -183,7 +183,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
    /* 主串口下载程序到flash */  
    case UART1DOWN:
       /*获取实际有效字节长度*/
-      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
+      inputdatalen = (uint32_t)((dat[2]<<8)|dat[3]);
       if((inputdatalen-4)%8 != 0) 
       {
         printf("inputdatalen error \r\n");
@@ -202,17 +202,19 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[1] = UART1DOWN;
       ackdata[2] = 0x00;
       ackdata[3] = 0x05;
-      inputaddr = inputaddr/8;
+      inputaddr = inputaddr*8;
       ackdata[4] = (uint8_t)(inputaddr>>8);
       ackdata[5] = (uint8_t)inputaddr;
       /*判断正确可以进行flash写入*/
       if(Write_Data_Flash(inputaddr, &dat[6], inputdatalen-4) == 0)
       {
         ackdata[6] = 0x00;
+        printf("Flash write success addr %d",inputaddr);
       }  
       else
       {
-        ackdata[6] = 0x01;      
+        ackdata[6] = 0x01; 
+        printf("Flash write fail addr %d",inputaddr);
       }
       crcdata = usMBCRC16( ackdata, 7 );
       ackdata[7] = (uint8_t)(crcdata>>8);
@@ -225,7 +227,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
    /* 蓝牙串口下载程序到flash */  
    case UART2DOWN:
       /*获取实际有效字节长度*/
-      inputdatalen = (uint16_t)((dat[2]<<8)|dat[3]);
+      inputdatalen = (uint32_t)((dat[2]<<8)|dat[3]);
       if((inputdatalen-4)%8 != 0) 
       {
         printf("inputdatalen error \r\n");
@@ -244,17 +246,19 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[1] = UART2DOWN;
       ackdata[2] = 0x00;
       ackdata[3] = 0x05;
-      inputaddr = inputaddr/8;      
+      inputaddr = inputaddr*8;      
       ackdata[4] = (uint8_t)(inputaddr>>8);
       ackdata[5] = (uint8_t)inputaddr;
       /*判断正确可以进行flash写入*/
       if(Write_Data_Flash(inputaddr, &dat[6], inputdatalen-4) == 0)
       {
         ackdata[6] = 0x00;
+        printf("Flash write success addr %d",inputaddr);        
       }  
       else
       {
-        ackdata[6] = 0x01;      
+        ackdata[6] = 0x01; 
+        printf("Flash write fail addr %d",inputaddr);        
       }
       crcdata = usMBCRC16( ackdata, 7 );
       ackdata[7] = (uint8_t)(crcdata>>8);
@@ -269,8 +273,8 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]);
       /*获取擦除数据的页数*/
-      inputdatalen = (uint16_t)(dat[6]<<16) | (dat[6]<<18) | dat[6];
-      inputdatalen = (inputdatalen/8)/1024;
+      inputdatalen = (uint32_t)(dat[6]<<16) | (dat[7]<<8) | dat[8];
+      inputdatalen = inputdatalen/1024;
       if(inputdatalen >= 128) inputdatalen = 64;
       /*打印需要擦除的页数*/
       printf("Erasure FLASH page %d \r\n",inputdatalen);      
@@ -404,12 +408,12 @@ int main(void)
       if(jumptim%10 == 0)
         printf("Time %d\n",jumptim/10);      
     }
-    if(jumptim > 50)
+    if(jumptim > 300)
     {
       jumptim = 0;
       /* 进行跳转 */
-//      printf("jump to application...\n");
-//      jump_application();
+      printf("jump to application...\n");
+      jump_application();
     }
     
   }

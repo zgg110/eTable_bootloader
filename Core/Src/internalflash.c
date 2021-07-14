@@ -122,13 +122,17 @@ uint8_t Write_ST_Flash(uint32_t addr, uint64_t* ptr, uint16_t ndword)
 *       ndchar写入单字节字符串的字节长度
 *返回： 0表示写入完成  1表示写入错误
 ***/
-uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint16_t ndchar)
+uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint32_t ndchar)
 {
   uint8_t ret = 0;
   uint8_t *cptr;
   uint16_t ndtchar;
     
-  cptr = malloc(ndchar+8);
+  cptr = (uint8_t *)malloc(ndchar+8);
+  if(cptr == NULL)
+  {
+    return 1;
+  }
   /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
   if((ndchar%8) != 0)
   {
@@ -142,9 +146,10 @@ uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint16_t ndchar)
   }
   /** 将申请的空间填充为0xff */
   memset(cptr,0xff,ndchar+8);
-  /** 判断是否在之后添加0xFF */
-  for(int j=0;j<ndchar;j++)
-    cptr[j] = ptrd[j];
+//  /** 判断是否在之后添加0xFF */
+//  for(int j=0;j<ndchar;j++)
+//    cptr[j] = ptrd[j];
+  memcpy(cptr,ptrd,ndchar*8);
   /* 将处理完成的数据写入flash */
   ret = Write_ST_Flash(addrd+APPSTATADD, (uint64_t *)cptr, ndtchar);
   

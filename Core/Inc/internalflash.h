@@ -7,7 +7,7 @@
 
 
 /*单字节写入函数*/
-uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint16_t ndchar);
+uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint32_t ndchar);
 /*单字节读取数据函数*/
 void Read_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint16_t nchar);
 /*擦除页*/

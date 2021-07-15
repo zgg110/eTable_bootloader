@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# IAR ELF Linker V8.32.3.193/W32 for ARM                  14/Jul/2021  18:19:23
+# IAR ELF Linker V8.32.3.193/W32 for ARM                  15/Jul/2021  10:13:44
 # Copyright 2007-2019 IAR Systems AB.
 #
 #    Output file  =  
@@ -8,7 +8,7 @@
 #    Map file     =  
 #        E:\MYGITHUB\eTable_bootloader\EWARM\eTable_bootloader\List\eTable_bootloader.map
 #    Command line =  
-#        -f C:\Users\LY\AppData\Local\Temp\EW9BC.tmp
+#        -f C:\Users\LY\AppData\Local\Temp\EWCBA9.tmp
 #        (E:\MYGITHUB\eTable_bootloader\EWARM\eTable_bootloader\Obj\gpio.o
 #        E:\MYGITHUB\eTable_bootloader\EWARM\eTable_bootloader\Obj\internalflash.o
 #        E:\MYGITHUB\eTable_bootloader\EWARM\eTable_bootloader\Obj\main.o
@@ -77,7 +77,7 @@ are calls to deallocation functions in the application.
 "A0":  place at 0x800'0000 { ro section .intvec };
 "P1":  place in [from 0x800'0000 to 0x803'ffff] { ro };
 define block CSTACK with size = 1K, alignment = 8 { };
-define block HEAP with size = 512, alignment = 8 { };
+define block HEAP with size = 1536, alignment = 8 { };
 "P2":  place in [from 0x2000'0000 to 0x2000'ffff] {
           rw, block CSTACK, block HEAP };
 initialize by copy { rw };
@@ -292,12 +292,12 @@ initialize by copy { rw };
   .bss               zero     0x2000'0d77     0x1  main.o [1]
                             - 0x2000'0d78   0xc84
 
-"P2", part 3 of 3:                          0x600
+"P2", part 3 of 3:                          0xa00
   CSTACK                      0x2000'0d78   0x400  <Block>
     CSTACK           uninit   0x2000'0d78   0x400  <Block tail>
-  HEAP                        0x2000'1178   0x200  <Block>
-    HEAP             uninit   0x2000'1178   0x200  <Block tail>
-                            - 0x2000'1378   0x600
+  HEAP                        0x2000'1178   0x600  <Block>
+    HEAP             uninit   0x2000'1178   0x600  <Block tail>
+                            - 0x2000'1778   0xa00
 
 Unused ranges:
 
@@ -305,7 +305,7 @@ Unused ranges:
          ----           --      ----
    0x800'6bca   0x803'ffff  0x3'9436
   0x2000'00f1  0x2000'00f3       0x3
-  0x2000'1378  0x2000'ffff    0xec88
+  0x2000'1778  0x2000'ffff    0xe888
 
 
 *******************************************************************************
@@ -427,9 +427,9 @@ shb_l.a: [5]
     Total:                         20
 
     Gaps                           42        4
-    Linker created                          32    1 536
+    Linker created                          32    2 560
 -------------------------------------------------------
-    Grand Total:               26 696      898    4 981
+    Grand Total:               26 696      898    6 005
 
 
 *******************************************************************************
@@ -522,7 +522,7 @@ HAL_UART_RxCpltCallback
                          0x800'4bed  0x132  Code  Gb  main.o [1]
 HAL_UART_Transmit        0x800'40d3   0xce  Code  Gb  stm32l4xx_hal_uart.o [1]
 HEAP$$Base              0x2000'1178          --   Gb  - Linker created -
-HEAP$$Limit             0x2000'1378          --   Gb  - Linker created -
+HEAP$$Limit             0x2000'1778          --   Gb  - Linker created -
 HardFault_Handler        0x800'6837    0x2  Code  Gb  stm32l4xx_it.o [1]
 LoadInt                  0x800'18ef   0x7a  Code  Lc  xprintffull.o [2]
 MSIRangeTable            0x800'689c   0x30  Data  Gb  system_stm32l4xx.o [1]
@@ -567,7 +567,7 @@ UART_WaitOnFlagUntilTimeout
 USART1_IRQHandler        0x800'684d    0xa  Code  Gb  stm32l4xx_it.o [1]
 USART2_IRQHandler        0x800'6857    0xa  Code  Gb  stm32l4xx_it.o [1]
 UsageFault_Handler       0x800'683d    0x2  Code  Gb  stm32l4xx_it.o [1]
-Write_Data_Flash         0x800'57d5   0x68  Code  Gb  internalflash.o [1]
+Write_Data_Flash         0x800'57d5   0x66  Code  Gb  internalflash.o [1]
 Write_ST_Flash           0x800'576f   0x66  Code  Gb  internalflash.o [1]
 _Encoding_8859_1_Mbrlen
                          0x800'274d    0x2  Code  Gb  xencoding_8859_1.o [2]
@@ -665,7 +665,7 @@ huart1                  0x2000'0b34   0x80  Data  Gb  usart.o [1]
 huart2                  0x2000'0bb4   0x80  Data  Gb  usart.o [1]
 init_mparams             0x800'01a7   0x32  Code  Lc  dlmalloc.o [2]
 init_top                 0x800'01d9   0x36  Code  Lc  dlmalloc.o [2]
-jump_application         0x800'583d   0x46  Code  Gb  internalflash.o [1]
+jump_application         0x800'583b   0x46  Code  Gb  internalflash.o [1]
 jumptim                 0x2000'0d68    0x2  Data  Gb  main.o [1]
 ldexp                    0x800'2d81         Code  Gb  ldexp.o [3]
 ldexpl                   0x800'2d81         Code  Gb  ldexp.o [3]
@@ -716,7 +716,7 @@ uwTickPrio              0x2000'0000    0x4  Data  Gb  stm32l4xx_hal.o [1]
 
   26 696 bytes of readonly  code memory
      898 bytes of readonly  data memory
-   4 981 bytes of readwrite data memory
+   6 005 bytes of readwrite data memory
 
 Errors: none
 Warnings: none

@@ -133,6 +133,7 @@ uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint32_t ndchar)
   {
     return 1;
   }
+
   /** 计算写入的字节数据是否属于4字节，不属于4字节需要在后面添加0xFF */  
   if((ndchar%8) != 0)
   {
@@ -145,11 +146,13 @@ uint8_t Write_Data_Flash(uint32_t addrd, uint8_t* ptrd, uint32_t ndchar)
     ndtchar = (ndchar/8);  
   }
   /** 将申请的空间填充为0xff */
-  memset(cptr,0xff,ndchar+8);
-//  /** 判断是否在之后添加0xFF */
+  memset(cptr,0xff,ndchar);
+
+  /** 判断是否在之后添加0xFF */
 //  for(int j=0;j<ndchar;j++)
 //    cptr[j] = ptrd[j];
-  memcpy(cptr,ptrd,ndchar*8);
+  memcpy(cptr,ptrd,ndchar);
+  
   /* 将处理完成的数据写入flash */
   ret = Write_ST_Flash(addrd+APPSTATADD, (uint64_t *)cptr, ndtchar);
   

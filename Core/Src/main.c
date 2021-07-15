@@ -174,7 +174,13 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
   uint16_t crcdata = 0;
   /*首先校验CRC判断是否数据正确*/
   crcdata = usMBCRC16( dat, dlen-2 );
-  if(crcdata != ((uint16_t)(dat[dlen-2]<<8)|(dat[dlen-1]))) return 1;
+  /* 打印计算得出的CRC数据 */
+  printf("CRC : %016x\n",crcdata);
+  if(crcdata != ((uint16_t)(dat[dlen-2]<<8)|(dat[dlen-1]))) 
+  {
+    printf("CRC check FAIL !!!\n");
+    return 1;
+  }
   /*其次判断功能�?*/
   Funtioncode = (funtioncode_f)dat[1];
   /* 等待获取数据使设备进入相关模�? */

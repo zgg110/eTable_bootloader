@@ -276,11 +276,11 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 //      if((inputdatalen-4)%8 != 0) return 1;
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]);
-      /*获取擦除数据的页数*/
+      /*获取擦除数据的页�?*/
       inputdatalen = (uint32_t)(dat[6]<<16) | (dat[7]<<8) | dat[8];
       inputdatalen = inputdatalen/1024;
       if(inputdatalen >= 128) inputdatalen = 64;
-      /*打印需要擦除的页数*/
+      /*打印�?要擦除的页数*/
       printf("Erasure FLASH page %d \r\n",inputdatalen);      
 //      if(inputaddr%8 != 0) return 1;    
       ackdata[0] = 0xEE;
@@ -393,9 +393,9 @@ int main(void)
     else if(uart2Revflag == 6)
     {
       timflag = 1;
-      /* 获得接收数据完成后进入相关数据解枿 */ 
+      /* 获得接收数据完成后进入相关数据解�? */ 
       uart2Revflag = 0;
-      /* 解析主串口接收数捿 */
+      /* 解析主串口接收数�? */
       Data_Analy(uart2Data, uart2len);
       /* 解析完成清空接收 */
       memset(uart2Data,0,1074);
@@ -406,15 +406,25 @@ int main(void)
     /* USER CODE BEGIN 3 */
     HAL_Delay(100);
     /* 计时并判断是否需要跳�? */
-    if(timflag == 0) 
+//    if(timflag == 0)
+    /* 如果开始蓝牙连接状态就跳入升级固件，不然就倒计时5秒跳转 */
+    if(BLEWakeUp == 1)
     {
       jumptim++;
       if(jumptim%10 == 0)
         printf("Time %d\n",jumptim/10);      
     }
-    if(jumptim > 300)
+    else
+    {
+      jumptim = JUMPTIMMAX;
+    }
+    /* 计时之后跳转 */
+    if((jumptim > JUMPTIMMAX) && (BLEWakeUp == 0))
     {
       jumptim = 0;
+      /* 判断是否有主程序 */
+      
+      
       /* 进行跳转 */
       printf("jump to application...\n");
       jump_application();

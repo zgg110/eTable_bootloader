@@ -1014,7 +1014,7 @@
                     <item>uart2Data</item>
                     <item>ptr[0]</item>
                     <item>addr</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>

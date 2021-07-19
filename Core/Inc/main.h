@@ -37,6 +37,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+  
 /* 配置相关功能码定�? */
   typedef enum {
     /*主串口写FLASH指令*/
@@ -48,6 +49,20 @@ extern "C" {
     /*复位重启*/
     RESETDEV = 0X0B,    
   }funtioncode_f; 
+ 
+  
+/* 定义设备信息 */  
+  typedef struct {
+    /* 设备头 */
+    uint64_t DevPackFlag;
+    /* 设备ID */
+    uint64_t DevID;
+    /* 读取的蓝牙设备MAC */
+    uint64_t BleMACID;
+  }DEVINFO;
+
+
+
   
 /* USER CODE END ET */
 
@@ -69,8 +84,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define BLEWAKEUP_Pin GPIO_PIN_0
+#define BLEWAKEUP_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
-
+#define JUMPTIMMAX           200 
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

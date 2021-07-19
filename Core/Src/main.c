@@ -166,8 +166,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 /* 进行数据解析判断接收到的�?帧数据属于的类型指令 */
 uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 {
-//  uint8_t temp[10] = {0xFF,0x01,0x00,0x05,0x01,0x02,0x03,0x04,0x05,0x06};
-
   uint8_t ackdata[30];
   uint32_t inputaddr = 0;
   uint32_t inputdatalen = 0;

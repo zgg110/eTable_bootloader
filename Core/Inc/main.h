@@ -59,6 +59,8 @@ extern "C" {
     uint64_t DevID;
     /* 读取的蓝牙设备MAC */
     uint64_t BleMACID;
+    /* 读取的LORA设备ID */
+    uint64_t LoRadevEui;
   }DEVINFO;
 
 

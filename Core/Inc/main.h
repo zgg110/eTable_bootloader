@@ -45,9 +45,9 @@ extern "C" {
     /*蓝牙串口写FLASH指令*/
     UART2DOWN = 0x02,    
     /*擦除指定flash*/
-    ERASFLASH = 0X0A,
+    ERASFLASH = 0x0A,
     /*复位重启*/
-    RESETDEV = 0X0B,    
+    RESETDEV = 0x0B,    
   }funtioncode_f; 
  
   

@@ -68,6 +68,9 @@ uint16_t uart2packlen = 0;
 
 funtioncode_f Funtioncode;
 
+const uint8_t appfinishflag[8] = {0x0A,0x0A,0x0A,0x0A,0x0A,0x0A,0x0A,0x0A}; 
+uint8_t readfinishflag[8];
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -135,7 +138,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     uart2Data[uart2len++] = uart2RxDatatmp;
     Time7Flag = 0;  
     if(uart2len < 2)
-      HAL_TIM_Base_Start_IT(&htim6);  
+      HAL_TIM_Base_Start_IT(&htim7);  
     if((uart2Revflag == 0) && (uart2len > 3))
     {
       /* 表示正在接收单包数据 */
@@ -173,7 +176,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
   /*首先校验CRC判断是否数据正确*/
   crcdata = usMBCRC16( dat, dlen-2 );
   /* 打印计算得出的CRC数据 */
-  printf("CRC : %016x\n",crcdata);
+//  printf("CRC : %016x\n",crcdata);
   if(crcdata != ((uint16_t)(dat[dlen-2]<<8)|(dat[dlen-1]))) 
   {
     printf("CRC check FAIL !!!\n");
@@ -266,10 +269,11 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       }
       crcdata = usMBCRC16( ackdata, 7 );
       ackdata[7] = (uint8_t)(crcdata>>8);
-      ackdata[8] = (uint8_t)crcdata;      
+      ackdata[8] = (uint8_t)crcdata;
+      HAL_Delay(5);
       /*发�?�应答数�?*/
       HAL_UART_Transmit(&huart2 , (uint8_t *)ackdata, 9, 0xFFFF); 
-
+      HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
 //      Read_Data_Flash(0, ttem, 40);
       break;      
   case ERASFLASH:
@@ -292,6 +296,8 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       /*擦除对应位置上的额数�?*/
       if(Erase_ST_Flash(inputaddr,inputdatalen) == 0)
       {
+        /* 主程序已经删除标志 */
+        Erase_ST_Flash(FLASH_ADDR_APPLICATION - 4096,1);
         ackdata[6] = 0x00;
       }  
       else
@@ -303,12 +309,16 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[8] = (uint8_t)crcdata;        
       /*发�?�应答数�?*/
       HAL_UART_Transmit(&huart2 , (uint8_t *)ackdata, 9, 0xFFFF);
-      HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF);       
+             
       break;
-  case RESETDEV:
-    
+  case RESETDEV:   
+      Write_Data_Flash(FLASH_ADDR_APPLICATION - 4096,(uint8_t *)appfinishflag,1);
+      printf("Device Reset!!!\n");
+      __set_FAULTMASK(1);
+      NVIC_SystemReset();      
       break;
     default:
+      printf("Device Data error\n");
       break;
   }
   
@@ -406,28 +416,26 @@ int main(void)
     /* USER CODE BEGIN 3 */
     HAL_Delay(100);
     /* 计时并判断是否需要跳�? */
-//    if(timflag == 0)
+    if(timflag == 0)
     /* 如果开始蓝牙连接状态就跳入升级固件，不然就倒计时5秒跳转 */
-    if(BLEWakeUp == 1)
+//    if(BLEWakeUp == 1)
     {
       jumptim++;
       if(jumptim%10 == 0)
         printf("Time %d\n",jumptim/10);      
     }
-    else
-    {
-      jumptim = JUMPTIMMAX;
-    }
     /* 计时之后跳转 */
-    if((jumptim > JUMPTIMMAX) && (BLEWakeUp == 0))
+    if((jumptim > JUMPTIMMAX) && (BLEWakeUp == 1))
     {
       jumptim = 0;
       /* 判断是否有主程序 */
-      
-      
-      /* 进行跳转 */
-      printf("jump to application...\n");
-      jump_application();
+      memcpy(readfinishflag,(uint8_t *)(FLASH_ADDR_APPLICATION - 4096),8);
+      if(strstr(appfinishflag,readfinishflag) != NULL)
+      {
+        /* 进行跳转 */
+        printf("jump to application...\n");
+        jump_application();
+      }
     }
     
   }

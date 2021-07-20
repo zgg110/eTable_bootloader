@@ -55,14 +55,14 @@ uint8_t uart2RxDatatmp;
 /* 跳转计时定义 */
 uint16_t jumptim = 0;
 
-/* 保持boot状�?�标志位 */
+/* 保持boot状态标志位 */
 uint8_t timflag = 0;
 
-/* 单字节超时计�? */
+/* 单字节超时计数 */
 uint16_t Time6Flag = 0;
 uint16_t Time7Flag = 0;
 
-/* 单包数据�?要接收的长度 */
+/* 单包数据需要接收的长度 */
 uint16_t uart1packlen = 0;
 uint16_t uart2packlen = 0;
 
@@ -70,6 +70,18 @@ funtioncode_f Funtioncode;
 
 const uint8_t appfinishflag[8] = {0x0A,0x0A,0x0A,0x0A,0x0A,0x0A,0x0A,0x0A}; 
 uint8_t readfinishflag[8];
+
+DEVINFO DevInfoData = {
+    /* 设备头 */
+    0x0C0C0C0C0C0C0C0C,
+    /* 设备ID */
+    0x0000000000000000,
+    /* 读取的蓝牙设备MAC */
+    0x0000000000000000,
+    /* 读取的LORA设备ID */
+    0x0000000000000000, 
+
+};
 
 /* USER CODE END PM */
 
@@ -87,7 +99,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/* 单字节接收超时计�? */
+/* 单字节接收超时计时 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* 单字节超时计时器 */
@@ -103,7 +115,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  /* 主串口回调函�? */
+  /* 主串口回调函数 */
   if(huart->Instance == USART1)
   {
     uart1Data[uart1len++] = uart1RxDatatmp;
@@ -166,7 +178,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   }
 }
 
-/* 进行数据解析判断接收到的�?帧数据属于的类型指令 */
+/* 进行数据解析判断接收到的单帧数据属于的类型指令 */
 uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 {
   uint8_t ackdata[30];
@@ -182,9 +194,9 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
     printf("CRC check FAIL !!!\n");
     return 1;
   }
-  /*其次判断功能�?*/
+  /*其次判断功能码*/
   Funtioncode = (funtioncode_f)dat[1];
-  /* 等待获取数据使设备进入相关模�? */
+  /* 等待获取数据使设备进入相关模式*/
   switch(Funtioncode)
   {
    /* 主串口下载程序到flash */  
@@ -226,7 +238,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       crcdata = usMBCRC16( ackdata, 7 );
       ackdata[7] = (uint8_t)(crcdata>>8);
       ackdata[8] = (uint8_t)crcdata;      
-      /*发�?�应答数�?*/
+      /*发送应答数据*/
       HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
 
 //      Read_Data_Flash(0, ttem, 40);
@@ -271,7 +283,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[7] = (uint8_t)(crcdata>>8);
       ackdata[8] = (uint8_t)crcdata;
       HAL_Delay(5);
-      /*发�?�应答数�?*/
+      /* 发送应答数据 */
       HAL_UART_Transmit(&huart2 , (uint8_t *)ackdata, 9, 0xFFFF); 
       HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF); 
 //      Read_Data_Flash(0, ttem, 40);
@@ -280,11 +292,11 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 //      if((inputdatalen-4)%8 != 0) return 1;
       /*获取地址*/
       inputaddr = (uint16_t)((dat[4]<<8)|dat[5]);
-      /*获取擦除数据的页�?*/
+      /*获取擦除数据的页*/
       inputdatalen = (uint32_t)(dat[6]<<16) | (dat[7]<<8) | dat[8];
       inputdatalen = inputdatalen/1024;
       if(inputdatalen >= 128) inputdatalen = 64;
-      /*打印�?要擦除的页数*/
+      /*打印要擦除的页数*/
       printf("Erasure FLASH page %d \r\n",inputdatalen);      
 //      if(inputaddr%8 != 0) return 1;    
       ackdata[0] = 0xEE;
@@ -293,7 +305,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       ackdata[3] = 0x05;
       ackdata[4] = (uint8_t)(inputaddr>>8);
       ackdata[5] = (uint8_t)inputaddr;   
-      /*擦除对应位置上的额数�?*/
+      /*擦除对应位置上的数据*/
       if(Erase_ST_Flash(inputaddr,inputdatalen) == 0)
       {
         /* 主程序已经删除标志 */
@@ -307,12 +319,27 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       crcdata = usMBCRC16( ackdata, 7 );
       ackdata[7] = (uint8_t)(crcdata>>8);
       ackdata[8] = (uint8_t)crcdata;        
-      /*发�?�应答数�?*/
+      /*发送应答数据*/
       HAL_UART_Transmit(&huart2 , (uint8_t *)ackdata, 9, 0xFFFF);
              
       break;
   case RESETDEV:   
-      Write_Data_Flash(FLASH_ADDR_APPLICATION - 4096,(uint8_t *)appfinishflag,1);
+      Write_Data_Flash(FLASH_ADDR_APPLICATION - 4096,(uint8_t *)appfinishflag,1);    
+    
+      ackdata[0] = 0xEE;
+      ackdata[1] = RESETDEV;
+      ackdata[2] = 0x00;
+      ackdata[3] = 0x05;
+      ackdata[4] = 0x00;
+      ackdata[5] = 0x00;   
+      ackdata[6] = 0x00;
+      crcdata = usMBCRC16( ackdata, 7 );
+      ackdata[7] = (uint8_t)(crcdata>>8);
+      ackdata[8] = (uint8_t)crcdata;        
+      /*发鿁应答数捿*/
+      HAL_UART_Transmit(&huart2 , (uint8_t *)ackdata, 9, 0xFFFF); 
+      HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF);
+      
       printf("Device Reset!!!\n");
       __set_FAULTMASK(1);
       NVIC_SystemReset();      
@@ -364,6 +391,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_UART_Receive_IT(&huart1, &uart1RxDatatmp, 1);
   HAL_UART_Receive_IT(&huart2, &uart2RxDatatmp, 1);
+  
+  /* 判断是否是第一次启动并且读取设备信息 */
+  
+  
   printf("bootloader start ...\n");
   /* USER CODE END 2 */
 

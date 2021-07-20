@@ -91,6 +91,8 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+      __set_FAULTMASK(1);
+      NVIC_SystemReset();      
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }

@@ -71,6 +71,8 @@ funtioncode_f Funtioncode;
 const uint8_t appfinishflag[8] = {0x0A,0x0A,0x0A,0x0A,0x0A,0x0A,0x0A,0x0A}; 
 uint8_t readfinishflag[8];
 
+uint64_t JumpTimMAX = 0;
+
 DEVINFO DevInfoData = {
     /* 设备头 */
     0x0C0C0C0C0C0C0C0C,
@@ -191,6 +193,22 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
 //  printf("CRC : %016x\n",crcdata);
   if(crcdata != ((uint16_t)(dat[dlen-2]<<8)|(dat[dlen-1]))) 
   {
+    inputaddr = (uint16_t)((dat[4]<<8)|dat[5])*8;     
+    ackdata[0] = 0xEE;
+    ackdata[1] = UART1DOWN;
+    ackdata[2] = 0x00;
+    ackdata[3] = 0x05;
+    inputaddr = inputaddr*8;
+    ackdata[4] = (uint8_t)(inputaddr>>8);
+    ackdata[5] = (uint8_t)inputaddr;
+    ackdata[6] = 0x01; 
+    crcdata = usMBCRC16( ackdata, 7 );
+    ackdata[7] = (uint8_t)(crcdata>>8);
+    ackdata[8] = (uint8_t)crcdata;      
+    /*发送应答数据*/
+    HAL_UART_Transmit(&huart1 , (uint8_t *)ackdata, 9, 0xFFFF);   
+    HAL_UART_Transmit(&huart2 , (uint8_t *)ackdata, 9, 0xFFFF); 
+    
     printf("CRC check FAIL !!!\n");
     return 1;
   }
@@ -309,7 +327,7 @@ uint8_t Data_Analy(uint8_t *dat, uint16_t dlen)
       if(Erase_ST_Flash(inputaddr,inputdatalen) == 0)
       {
         /* 主程序已经删除标志 */
-        Erase_ST_Flash(FLASH_ADDR_APPLICATION - 4096,1);
+        Erase_ST_Flash(DEVAPPSTAADD,1);
         ackdata[6] = 0x00;
       }  
       else
@@ -393,9 +411,18 @@ int main(void)
   HAL_UART_Receive_IT(&huart2, &uart2RxDatatmp, 1);
   
   /* 判断是否是第一次启动并且读取设备信息 */
+  memcpy(readfinishflag,(uint8_t *)DEVAPPSTAADD,8);
+  /* 读取本次需要延时的时间 */
+  memcpy(&JumpTimMAX,(uint8_t *)JUMPTIMADD,8);  
+  if(JumpTimMAX > 1000) JumpTimMAX = 3;
+ 
   
-  
+  /*调试与提示打印*/
   printf("bootloader start ...\n");
+  printf("Jump Application Time %d\n",(uint32_t)JumpTimMAX);
+  printf("\n");
+  printf("\n");
+  printf("\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -411,7 +438,7 @@ int main(void)
         Time6Flag = 0;
         HAL_TIM_Base_Stop(&htim6);    
     }
-    else if((uart2Revflag == 1) && (Time7Flag > 100))
+    else if((uart2Revflag == 1) && (Time7Flag > 200))
     {
         /* 表述数据接收完毕 */
         uart2Revflag = 6;        
@@ -456,12 +483,12 @@ int main(void)
         printf("Time %d\n",jumptim/10);      
     }
     /* 计时之后跳转 */
-    if((jumptim > JUMPTIMMAX) && (BLEWakeUp == 1))
+    if((jumptim > JumpTimMAX*10) && (BLEWakeUp == 1))
     {
       jumptim = 0;
       /* 判断是否有主程序 */
-      memcpy(readfinishflag,(uint8_t *)(FLASH_ADDR_APPLICATION - 4096),8);
-      if(strstr(appfinishflag,readfinishflag) != NULL)
+      memcpy(readfinishflag,(uint8_t *)DEVAPPSTAADD,8);
+//      if(strstr(appfinishflag,readfinishflag) != NULL)
       {
         /* 进行跳转 */
         printf("jump to application...\n");

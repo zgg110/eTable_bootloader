@@ -65,7 +65,6 @@ extern "C" {
 
 
 
-  
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -89,7 +88,15 @@ void Error_Handler(void);
 #define BLEWAKEUP_Pin GPIO_PIN_0
 #define BLEWAKEUP_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
-#define JUMPTIMMAX           200 
+
+/* 定义BOOTLOADER跳转时间读取位置 */
+#define JUMPTIMADD           FLASH_ADDR_APPLICATION - (1024 * 3)
+/* 是否存有主程序判断地址 */
+#define DEVAPPSTAADD         FLASH_ADDR_APPLICATION - (1024 * 2)
+/* 设备固定信息存储地址 */
+#define DEVINFOADD           FLASH_ADDR_APPLICATION - (1024 * 1)
+
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

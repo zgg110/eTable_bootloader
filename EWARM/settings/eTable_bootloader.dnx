@@ -22,7 +22,7 @@
         <LeaveTargetRunning>_ 0</LeaveTargetRunning>
     </JLinkDriver>
     <DebugChecksum>
-        <Checksum>4134348652</Checksum>
+        <Checksum>1693929624</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -119,6 +119,12 @@
         <ShowTimeSum>1</ShowTimeSum>
         <SumSortOrder>0</SumSortOrder>
     </EventLog>
+    <DisassembleMode>
+        <mode>0</mode>
+    </DisassembleMode>
+    <Breakpoints2>
+        <Count>0</Count>
+    </Breakpoints2>
     <TermIOLog>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
@@ -128,6 +134,13 @@
         <LogFile>_ ""</LogFile>
         <Category>_ 0</Category>
     </LogFile>
+    <Aliases>
+        <A0>_ "E:\Estone_liuying\mygithub\eTable_bootloader\Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_gpio.c" ""</A0>
+        <A1>_ "E:\MYGITHUB\eTable_bootloader\Core\Src\main.c" "G:\mygithub\eTable_bootloader\Core\Src\main.c"</A1>
+        <A2>_ "G:\mygithub\eTable_bootloader\Core\Src\main.c" "E:\MYGITHUB\eTable_bootloader\Core\Src\main.c"</A2>
+        <Count>3</Count>
+        <SuppressDialog>0</SuppressDialog>
+    </Aliases>
     <DriverProfiling>
         <Enabled>0</Enabled>
         <Mode>1</Mode>
@@ -146,17 +159,4 @@
         <Probe0>I0</Probe0>
         <ProbeSetup0>2 1 1 2 0 0</ProbeSetup0>
     </PowerProbe>
-    <DisassembleMode>
-        <mode>0</mode>
-    </DisassembleMode>
-    <Breakpoints2>
-        <Count>0</Count>
-    </Breakpoints2>
-    <Aliases>
-        <A0>_ "E:\Estone_liuying\mygithub\eTable_bootloader\Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_gpio.c" ""</A0>
-        <A1>_ "E:\MYGITHUB\eTable_bootloader\Core\Src\main.c" "G:\mygithub\eTable_bootloader\Core\Src\main.c"</A1>
-        <A2>_ "G:\mygithub\eTable_bootloader\Core\Src\main.c" "E:\MYGITHUB\eTable_bootloader\Core\Src\main.c"</A2>
-        <Count>3</Count>
-        <SuppressDialog>0</SuppressDialog>
-    </Aliases>
 </settings>

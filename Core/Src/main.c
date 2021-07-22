@@ -73,6 +73,8 @@ uint8_t readfinishflag[8];
 
 uint64_t JumpTimMAX = 0;
 
+uint8_t StartDevFlag[7] = {0xEE,0x0F,0x00,0x03,0x01,0x33,0x0E};
+
 DEVINFO DevInfoData = {
     /* 设备头 */
     0x0C0C0C0C0C0C0C0C,
@@ -423,6 +425,9 @@ int main(void)
   printf("\n");
   printf("\n");
   printf("\n");
+  
+  HAL_UART_Transmit(&huart2 , (uint8_t *)StartDevFlag, 7, 0xFFFF); 
+  HAL_UART_Transmit(&huart1 , (uint8_t *)StartDevFlag, 7, 0xFFFF);   
   /* USER CODE END 2 */
 
   /* Infinite loop */
